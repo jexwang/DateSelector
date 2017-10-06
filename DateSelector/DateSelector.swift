@@ -66,6 +66,19 @@ open class DateSelectorViewController: UIViewController {
     fileprivate var todayButtonSetting: (title: String?, textColor: UIColor?, image: UIImage?) = ("Today", nil, nil)
     fileprivate var locale: String?
     
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        NotificationCenter.default.addObserver(self, selector: #selector(adjustContainerCollectionViewFlowLayout), name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: Notification.Name.UIDeviceOrientationDidChange, object: nil)
+    }
+    
     override open func draw(_ rect: CGRect) {
         super.draw(rect)
         prevDateButtonInit()
@@ -75,20 +88,34 @@ open class DateSelectorViewController: UIViewController {
         dateSelectorMaskViewInit()
     }
     
+    @objc private func adjustContainerCollectionViewFlowLayout() {
+        if let containerCollectionView = containerCollectionView {
+            let flowLayout = containerCollectionView.collectionViewLayout as! UICollectionViewFlowLayout
+            flowLayout.itemSize = containerCollectionView.frame.size
+            containerCollectionView.scrollToItem(at: IndexPath(item: 1, section: 0), at: .centeredHorizontally, animated: false)
+        }
+    }
+    
     open func setLocale(identifier: String) {
         locale = identifier
     }
     
     private func prevDateButtonInit() {
-        prevDateButton = UIButton(frame: CGRect(x: 0, y: 0, width: frame.height, height: frame.height))
-        if prevDateButton.frame.width > frame.width / 4 {
-            prevDateButton.frame.size.width = frame.width / 4
-        }
+        prevDateButton = UIButton()
         prevDateButton.setTitle(prevDateButtonSetting.title, for: .normal)
         prevDateButton.setTitleColor(textColor, for: .normal)
         prevDateButton.setImage(prevDateButtonSetting.image, for: .normal)
         prevDateButton.addTarget(self, action: #selector(prevDateButtonClick), for: .touchUpInside)
         addSubview(prevDateButton)
+        prevDateButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: prevDateButton, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: prevDateButton, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: prevDateButton, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        if frame.height < frame.width / 4 {
+            NSLayoutConstraint(item: prevDateButton, attribute: .width, relatedBy: .equal, toItem: self, attribute: .height, multiplier: 1, constant: 0).isActive = true
+        } else {
+            NSLayoutConstraint(item: prevDateButton, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 0.25, constant: 0).isActive = true
+        }
     }
     
     @objc private func prevDateButtonClick() {
@@ -107,16 +134,20 @@ open class DateSelectorViewController: UIViewController {
     
     private func nextDateButtonInit() {
         nextDateButton = UIButton()
-        nextDateButton.frame.size = CGSize(width: frame.height, height: frame.height)
-        if nextDateButton.frame.width > frame.width / 4 {
-            nextDateButton.frame.size.width = frame.width / 4
-        }
-        nextDateButton.frame.origin = CGPoint(x: frame.width - nextDateButton.frame.width, y: 0)
         nextDateButton.setTitle(nextDateButtonSetting.title, for: .normal)
         nextDateButton.setTitleColor(textColor, for: .normal)
         nextDateButton.setImage(nextDateButtonSetting.image, for: .normal)
         nextDateButton.addTarget(self, action: #selector(nextDateButtonClick), for: .touchUpInside)
         addSubview(nextDateButton)
+        nextDateButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: nextDateButton, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: nextDateButton, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: nextDateButton, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        if frame.height < frame.width / 4 {
+            NSLayoutConstraint(item: nextDateButton, attribute: .width, relatedBy: .equal, toItem: self, attribute: .height, multiplier: 1, constant: 0).isActive = true
+        } else {
+            NSLayoutConstraint(item: nextDateButton, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 0.25, constant: 0).isActive = true
+        }
     }
     
     @objc private func nextDateButtonClick() {
@@ -135,12 +166,15 @@ open class DateSelectorViewController: UIViewController {
     
     private func dateButtonInit() {
         dateButton = UIButton()
-        dateButton.frame.size = CGSize(width: frame.width - prevDateButton.frame.width - nextDateButton.frame.width, height: frame.height)
-        dateButton.center = CGPoint(x: frame.width / 2, y: frame.height / 2)
         dateButton.setTitle(dateConvertToString(), for: .normal)
         dateButton.setTitleColor(textColor, for: .normal)
         dateButton.addTarget(self, action: #selector(dateButtonClick), for: .touchUpInside)
         addSubview(dateButton)
+        dateButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: dateButton, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateButton, attribute: .left, relatedBy: .equal, toItem: prevDateButton, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateButton, attribute: .right, relatedBy: .equal, toItem: nextDateButton, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateButton, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
     }
     
     @objc private func dateButtonClick() {
@@ -148,9 +182,20 @@ open class DateSelectorViewController: UIViewController {
             return
         }
         
-        window.rootViewController?.view.addSubview(dateSelectorMaskView!)
-        window.rootViewController?.view.bringSubview(toFront: dateSelectorView)
+        guard let view = window.rootViewController?.view else {
+            return
+        }
         
+        view.addSubview(dateSelectorMaskView)
+        dateSelectorMaskView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: dateSelectorMaskView, attribute: .top, relatedBy: .equal, toItem: view, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateSelectorMaskView, attribute: .left, relatedBy: .equal, toItem: view, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateSelectorMaskView, attribute: .right, relatedBy: .equal, toItem: view, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateSelectorMaskView, attribute: .bottom, relatedBy: .equal, toItem: view, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        
+        view.bringSubview(toFront: dateSelectorView)
+        
+        dateSelectorView.isHidden = false
         UIView.animate(withDuration: 0.2) {
             self.dateSelectorView.transform = CGAffineTransform(translationX: 0, y: -self.dateSelectorView.frame.height)
         }
@@ -161,10 +206,20 @@ open class DateSelectorViewController: UIViewController {
             return
         }
         
+        guard let view = window.rootViewController?.view else {
+            return
+        }
+        
         dateSelectorView = DateSelectorView(frame: CGRect(x:0, y: UIScreen.main.bounds.maxY, width: UIScreen.main.bounds.width, height: 306))
         dateSelectorView.delegate = self
         dateSelectorView.backgroundColor = .white
-        window.rootViewController?.view.addSubview(dateSelectorView)
+        dateSelectorView.isHidden = true
+        view.addSubview(dateSelectorView)
+        dateSelectorView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: dateSelectorView, attribute: .width, relatedBy: .equal, toItem: self, attribute: .width, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateSelectorView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 306).isActive = true
+        NSLayoutConstraint(item: dateSelectorView, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: dateSelectorView, attribute: .top, relatedBy: .equal, toItem: view, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
     }
     
     open func setCancelButton(title: String?, image: UIImage?) {
@@ -184,7 +239,7 @@ open class DateSelectorViewController: UIViewController {
     }
     
     private func dateSelectorMaskViewInit() {
-        dateSelectorMaskView = UIView(frame: UIScreen.main.bounds)
+        dateSelectorMaskView = UIView()
         dateSelectorMaskView?.backgroundColor = UIColor(white: 0, alpha: 0.6)
         dateSelectorMaskView?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dateSelectorMaskViewTap)))
     }
@@ -193,6 +248,7 @@ open class DateSelectorViewController: UIViewController {
         UIView.animate(withDuration: 0.2, animations: {
             self.dateSelectorView.transform = .identity
         }) { _ in
+            self.dateSelectorView.isHidden = true
             self.dateSelectorMaskView?.removeFromSuperview()
         }
     }
@@ -320,18 +376,28 @@ fileprivate class DateSelectorView: UIView {
     }
     
     private func toolbarViewInit() {
-        toolbarView = UIView(frame: CGRect(x: 0, y: 0, width: frame.width, height: 50))
+        toolbarView = UIView()
         toolbarView.backgroundColor = delegate?.themeColor
         addSubview(toolbarView)
+        toolbarView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: toolbarView, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: toolbarView, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: toolbarView, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: toolbarView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 50).isActive = true
     }
     
     private func cancelButtonInit() {
-        cancelButton = UIButton(frame: CGRect(x: 0, y: 0, width: toolbarView.frame.height * 1.5, height: toolbarView.frame.height))
+        cancelButton = UIButton()
         cancelButton.setTitle(delegate?.cancelButtonSetting.title, for: .normal)
         cancelButton.setTitleColor(delegate?.textColor, for: .normal)
         cancelButton.setImage(delegate?.cancelButtonSetting.image, for: .normal)
         cancelButton.addTarget(self, action: #selector(cancelButtonClick), for: .touchUpInside)
         toolbarView.addSubview(cancelButton)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: cancelButton, attribute: .top, relatedBy: .equal, toItem: toolbarView, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: cancelButton, attribute: .left, relatedBy: .equal, toItem: toolbarView, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: cancelButton, attribute: .bottom, relatedBy: .equal, toItem: toolbarView, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: cancelButton, attribute: .width, relatedBy: .equal, toItem: toolbarView, attribute: .height, multiplier: 1.5, constant: 0).isActive = true
     }
     
     @objc private func cancelButtonClick() {
@@ -339,12 +405,17 @@ fileprivate class DateSelectorView: UIView {
     }
     
     private func doneButtonInit() {
-        doneButton = UIButton(frame: CGRect(x: toolbarView.frame.width - toolbarView.frame.height * 1.5, y: 0, width: toolbarView.frame.height * 1.5, height: toolbarView.frame.height))
+        doneButton = UIButton()
         doneButton.setTitle(delegate?.doneButtonSetting.title, for: .normal)
         doneButton.setTitleColor(delegate?.textColor, for: .normal)
         doneButton.setImage(delegate?.doneButtonSetting.image, for: .normal)
         doneButton.addTarget(self, action: #selector(doneButtonClick), for: .touchUpInside)
         toolbarView.addSubview(doneButton)
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: doneButton, attribute: .top, relatedBy: .equal, toItem: toolbarView, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: doneButton, attribute: .right, relatedBy: .equal, toItem: toolbarView, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: doneButton, attribute: .bottom, relatedBy: .equal, toItem: toolbarView, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: doneButton, attribute: .width, relatedBy: .equal, toItem: toolbarView, attribute: .height, multiplier: 1.5, constant: 0).isActive = true
     }
     
     @objc private func doneButtonClick() {
@@ -357,22 +428,29 @@ fileprivate class DateSelectorView: UIView {
     
     private func titleLabelInit() {
         let titleLabel = UILabel()
-        titleLabel.frame.size = CGSize(width: toolbarView.frame.width - (cancelButton.frame.width + doneButton.frame.width), height: toolbarView.frame.height)
-        titleLabel.center = toolbarView.center
         titleLabel.text = delegate?.titleLabelSetting
         titleLabel.textColor = delegate?.textColor
         titleLabel.textAlignment = .center
         toolbarView.addSubview(titleLabel)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: titleLabel, attribute: .top, relatedBy: .equal, toItem: toolbarView, attribute: .top, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: titleLabel, attribute: .left, relatedBy: .equal, toItem: cancelButton, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: titleLabel, attribute: .right, relatedBy: .equal, toItem: doneButton, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: titleLabel, attribute: .bottom, relatedBy: .equal, toItem: toolbarView, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
     }
     
     private func todayButtonInit() {
         todayButton = UIButton(type: .system)
-        todayButton.frame = CGRect(x: 0, y: toolbarView.frame.height + 10, width: frame.width, height: 30)
         todayButton.setTitle(delegate?.todayButtonSetting.title, for: .normal)
         todayButton.setTitleColor(delegate?.todayButtonSetting.textColor, for: .normal)
         todayButton.setImage(delegate?.todayButtonSetting.image, for: .normal)
         todayButton.addTarget(self, action: #selector(todayButtonClick), for: .touchUpInside)
         addSubview(todayButton)
+        todayButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: todayButton, attribute: .top, relatedBy: .equal, toItem: toolbarView, attribute: .bottom, multiplier: 1, constant: 10).isActive = true
+        NSLayoutConstraint(item: todayButton, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: todayButton, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: todayButton, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 30).isActive = true
     }
     
     @objc private func todayButtonClick() {
@@ -382,18 +460,24 @@ fileprivate class DateSelectorView: UIView {
     }
     
     private func datePickerInit() {
-        datePicker = UIDatePicker(frame: CGRect(x: 0, y: toolbarView.frame.height + todayButton.frame.height, width: frame.width, height: frame.height - (toolbarView.frame.height + todayButton.frame.height)))
+        datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         if let locale = delegate?.locale {
             datePicker.locale = Locale(identifier: locale)
         }
         addSubview(datePicker)
+        datePicker.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint(item: datePicker, attribute: .top, relatedBy: .equal, toItem: todayButton, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: datePicker, attribute: .left, relatedBy: .equal, toItem: self, attribute: .left, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: datePicker, attribute: .right, relatedBy: .equal, toItem: self, attribute: .right, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: datePicker, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1, constant: 0).isActive = true
     }
     
     private func putDownDateSelectorView() {
         UIView.animate(withDuration: 0.2, animations: {
             self.transform = .identity
         }) { _ in
+            self.isHidden = true
             self.delegate?.dateSelectorMaskView?.removeFromSuperview()
         }
     }
@@ -421,7 +505,7 @@ open class DateSelectorCollectionView: UICollectionView {
     open override func draw(_ rect: CGRect) {
         super.draw(rect)
         let flowLayout = collectionViewLayout as! UICollectionViewFlowLayout
-        flowLayout.itemSize = CGSize(width: frame.width, height: frame.height)
+        flowLayout.itemSize = rect.size
         flowLayout.minimumLineSpacing = 0
         flowLayout.scrollDirection = .horizontal
         scrollToItem(at: IndexPath(item: 1, section: 0), at: .centeredHorizontally, animated: false)

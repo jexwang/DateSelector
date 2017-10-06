@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "DateSelector"
-  s.version      = "0.0.6"
+  s.version      = "0.0.7"
   s.summary      = "A swift date selector."
   s.description  = <<-DESC
 	一個簡易的日期選擇套件，並帶有 UICollectionView 左右滑動頁面之功能。

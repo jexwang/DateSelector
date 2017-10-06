@@ -262,7 +262,7 @@ open class DateSelectorViewController: UIViewController {
         return dateFormatter.string(from: date)
     }
     
-    func getDate() -> Date {
+    open func getDate() -> Date {
         return date
     }
 }

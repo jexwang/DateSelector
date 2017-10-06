@@ -10,7 +10,7 @@ import UIKit
 
 open class DateSelectorViewController: UIViewController {
     
-    var date: Date
+    open let date: Date
     
     required public init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?, date: Date) {
         self.date = date
@@ -49,7 +49,7 @@ open class DateSelectorViewController: UIViewController {
         }
     }
     
-    weak var delegate: DateSelectorDelegate?
+    @IBOutlet weak open var delegate: DateSelectorDelegate?
     @IBOutlet weak var containerCollectionView: DateSelectorCollectionView?
     
     private var prevDateButton: UIButton!
@@ -75,7 +75,7 @@ open class DateSelectorViewController: UIViewController {
         dateSelectorMaskViewInit()
     }
     
-    func setLocale(identifier: String) {
+    open func setLocale(identifier: String) {
         locale = identifier
     }
     
@@ -101,7 +101,7 @@ open class DateSelectorViewController: UIViewController {
         }
     }
     
-    func setPrevDateButton(title: String?, image: UIImage?) {
+    open func setPrevDateButton(title: String?, image: UIImage?) {
         prevDateButtonSetting = (title, image)
     }
     
@@ -129,7 +129,7 @@ open class DateSelectorViewController: UIViewController {
         }
     }
     
-    func setNextDateButton(title: String?, image: UIImage?) {
+    open func setNextDateButton(title: String?, image: UIImage?) {
         nextDateButtonSetting = (title, image)
     }
     
@@ -144,12 +144,12 @@ open class DateSelectorViewController: UIViewController {
     }
     
     @objc private func dateButtonClick() {
-        guard let appdelegate = UIApplication.shared.delegate as? AppDelegate else {
+        guard let window = UIApplication.shared.delegate?.window as? UIWindow else {
             return
         }
         
-        appdelegate.window?.rootViewController?.view.addSubview(dateSelectorMaskView!)
-        appdelegate.window?.rootViewController?.view.bringSubview(toFront: dateSelectorView)
+        window.rootViewController?.view.addSubview(dateSelectorMaskView!)
+        window.rootViewController?.view.bringSubview(toFront: dateSelectorView)
         
         UIView.animate(withDuration: 0.2) {
             self.dateSelectorView.transform = CGAffineTransform(translationX: 0, y: -self.dateSelectorView.frame.height)
@@ -157,29 +157,29 @@ open class DateSelectorViewController: UIViewController {
     }
     
     private func dateSelectorViewInit() {
-        guard let appdelegate = UIApplication.shared.delegate as? AppDelegate else {
+        guard let window = UIApplication.shared.delegate?.window as? UIWindow else {
             return
         }
         
         dateSelectorView = DateSelectorView(frame: CGRect(x:0, y: UIScreen.main.bounds.maxY, width: UIScreen.main.bounds.width, height: 306))
         dateSelectorView.delegate = self
         dateSelectorView.backgroundColor = .white
-        appdelegate.window?.rootViewController?.view.addSubview(dateSelectorView)
+        window.rootViewController?.view.addSubview(dateSelectorView)
     }
     
-    func setCancelButton(title: String?, image: UIImage?) {
+    open func setCancelButton(title: String?, image: UIImage?) {
         cancelButtonSetting = (title, image)
     }
     
-    func setDoneButton(title: String?, image: UIImage?) {
+    open func setDoneButton(title: String?, image: UIImage?) {
         doneButtonSetting = (title, image)
     }
     
-    func setTitleLabel(title: String) {
+    open func setTitleLabel(title: String) {
         titleLabelSetting = title
     }
     
-    func setTodayButton(title: String?, titleColor: UIColor?, image: UIImage?) {
+    open func setTodayButton(title: String?, titleColor: UIColor?, image: UIImage?) {
         todayButtonSetting = (title, titleColor, image)
     }
     
@@ -463,10 +463,6 @@ private class DateSelectorCollectionViewCell: UICollectionViewCell {
         didSet {
             view!.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview(view!)
-//            view!.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-//            view!.leftAnchor.constraint(equalTo: contentView.leftAnchor).isActive = true
-//            view!.rightAnchor.constraint(equalTo: contentView.rightAnchor).isActive = true
-//            view!.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
             NSLayoutConstraint(item: view!, attribute: .top, relatedBy: .equal, toItem: contentView, attribute: .top, multiplier: 1, constant: 0).isActive = true
             NSLayoutConstraint(item: view!, attribute: .left, relatedBy: .equal, toItem: contentView, attribute: .left, multiplier: 1, constant: 0).isActive = true
             NSLayoutConstraint(item: view!, attribute: .right, relatedBy: .equal, toItem: contentView, attribute: .right, multiplier: 1, constant: 0).isActive = true
